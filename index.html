@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ภารกิจลับ: วันนี้คนเกิดต้องโดนเซอร์ไพรส์!</title>
+  <!-- Google Fonts & Canvas Confetti Library -->
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Mali:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Mali', 'Kanit', sans-serif;
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      color: #4a4a4a;
+      position: relative;
+    }
+
+    /* Floating Background Particle Canvas */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 500px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      padding: 25px;
+      border-radius: 25px;
+      box-shadow: 0 15px 35px rgba(255, 105, 180, 0.3);
+      text-align: center;
+      position: relative;
+      z-index: 10;
+      transition: all 0.5s ease;
+      margin: 20px 0;
+    }
+
+    .stage {
+      display: none;
+      animation: fadeIn 0.6s ease-in-out forwards;
+    }
+
+    .stage.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1, h2 {
+      color: #ff4757;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      background: linear-gradient(45deg, #ff6b81, #ff4757);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-size: 1.1rem;
+      font-family: 'Kanit', sans-serif;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin: 8px;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(255, 71, 87, 0.6);
+    }
+
+    .btn-secondary {
+      background: #70a1ff;
+      box-shadow: 0 5px 15px rgba(112, 161, 255, 0.4);
+    }
+
+    /* Runaway Button */
+    #runaway-btn {
+      position: absolute;
+      transition: all 0.2s ease;
+    }
+
+    /* Cake Animation */
+    .cake-box {
+      font-size: 80px;
+      cursor: pointer;
+      display: inline-block;
+      animation: bounce 1.5s infinite alternate;
+      user-select: none;
+    }
+
+    @keyframes bounce {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-20px); }
+    }
+
+    /* Candle Blowing Stage */
+    .flame {
+      font-size: 40px;
+      cursor: pointer;
+      animation: flicker 0.6s infinite alternate;
+      display: inline-block;
+    }
+
+    @keyframes flicker {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0.7; transform: scale(1.1); }
+    }
+
+    /* Photo Gallery */
+    .photo-card {
+      background: white;
+      padding: 12px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .photo-card img {
+      width: 100%;
+      border-radius: 10px;
+      max-height: 380px;
+      object-fit: cover;
+    }
+
+    .photo-caption {
+      margin-top: 10px;
+      font-size: 1rem;
+      color: #ff4757;
+      font-weight: 600;
+    }
+
+    /* Cinema Screen */
+    .cinema-screen {
+      background: #000;
+      border: 8px solid #333;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      margin-bottom: 15px;
+    }
+
+    .cinema-screen video {
+      width: 100%;
+      display: block;
+    }
+
+    /* Typewriter & Final Stage */
+    .dark-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.92);
+      z-index: 100;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-align: center;
+      padding: 30px;
+    }
+
+    .typewriter-text {
+      font-size: 1.5rem;
+      line-height: 1.8;
+      color: #ff758c;
+      font-weight: 600;
+    }
+
+    .final-card {
+      background: white;
+      color: #333;
+      padding: 25px;
+      border-radius: 20px;
+      max-height: 80vh;
+      overflow-y: auto;
+      text-align: left;
+      line-height: 1.7;
+      font-size: 1.05rem;
+      box-shadow: 0 10px 30px rgba(255, 105, 180, 0.5);
+    }
+
+    .heart-particle {
+      position: fixed;
+      pointer-events: none;
+      font-size: 20px;
+      z-index: 9999;
+      animation: floatUp 1.5s ease-out forwards;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translate(0, 0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.5); }
+    }
+
+    /* Music Floating Button */
+    .music-btn {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 2px solid #ff4757;
+      border-radius: 50px;
+      padding: 8px 15px;
+      font-family: 'Kanit', sans-serif;
+      font-size: 0.9rem;
+      color: #ff4757;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    /* Countdown text */
+    #countdown-text {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #ff4757;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- ปุ่มเปิด-ปิดเพลงมุมบนขวา -->
+  <button class="music-btn" id="music-toggle-btn" onclick="toggleMusic()">🎵 เพลงกำลังเล่น</button>
+
+  <!-- Background Music Element -->
+  <audio id="bg-music" loop preload="auto">
+    <source src="ทุกปี.mp3" type="audio/mpeg">
+  </audio>
+
+  <div class="container">
+
+    <!-- FRONT PAGE -->
+    <div id="stage-0" class="stage active">
+      <div class="cake-box">🎂🎈</div>
+      <h1>ภารกิจลับ!</h1>
+      <p>วันนี้คนเกิดต้องโดนเซอร์ไพรส์! 😳<br><i>“เดี๋ยวก่อน! ใครอนุญาตให้เกิดวันนี้เนี่ย?”</i></p>
+      
+      <div style="position: relative; min-height: 100px;">
+        <button class="btn" onclick="playMusicAndNext(1)">กดตรงนี้ดิ ไม่กัดหรอก 🎀</button>
+        <button class="btn btn-secondary" id="runaway-btn" onmouseover="moveButton()" onclick="moveButton()">ไม่อยากดู 😜</button>
+      </div>
+    </div>
+
+    <!-- STAGE 1: Confirm Birthday -->
+    <div id="stage-1" class="stage">
+      <h2>ด่าน 1 — ยืนยันตัวตน 🕵️‍♂️</h2>
+      <p style="font-size: 1.3rem; font-weight: bold;">“วันนี้วันที่ 30 กันยายนใช่มั้ย?”</p>
+      <button class="btn" onclick="nextStage(2)">✅ ใช่</button>
+      <button class="btn btn-secondary" onclick="wrongAnswerStage1()">❌ ไม่ใช่</button>
+      <p id="stage1-msg" style="color: #ff4757; margin-top: 15px; font-weight: bold;"></p>
+    </div>
+
+    <!-- STAGE 2: Photo Memories -->
+    <div id="stage-2" class="stage">
+      <h2>ด่าน 2 — รูปความทรงจำ 📸</h2>
+      <div id="photo-container" class="photo-card">
+        <img id="current-img" src="" alt="ความทรงจำ">
+        <div class="photo-caption" id="current-caption"></div>
+      </div>
+      <button class="btn" onclick="nextPhoto()">รูปถัดไป ➡️</button>
+    </div>
+
+    <!-- STAGE 3: Cinema Video -->
+    <div id="stage-3" class="stage">
+      <h2>ด่าน 3 — โรงหนังแห่งความทรงจำ 🎬</h2>
+      <p>“ต่อไปคือหลักฐานว่าเราเคยมีช่วงเวลาดี ๆ ด้วยกัน 🥹
+      
+      (ปิดเสียงเพลงด้วยนะ!😤)”</p>
+      <div class="cinema-screen">
+        <video id="memory-video" controls poster="image.png">
+          <source src="รักที่สุด02.mp4" type="video/mp4">
+          เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอนี้
+        </video>
+      </div>
+      <button class="btn" onclick="nextStage(4)">ดูวิดีโอจบแล้ว ไปต่อเล้ย 💖</button>
+    </div>
+
+    <!-- STAGE 4: Countdown & Blow Candles -->
+    <div id="stage-4" class="stage">
+      <h2>ด่านสุดท้าย — เป่าเทียน 🎂</h2>
+      <p style="font-size: 1.2rem; color: #ff4757; font-weight: bold;">“ตั้งใจอธิษฐานนะคนเก่ง... ✨”</p>
+
+      <div id="countdown-text"></div>
+
+      <div id="cake-area" style="display: none;">
+        <p style="font-size: 1rem; color: #666; margin-bottom: 10px;">(จิ้มที่ไฟบนเทียนเพื่อดับเทียนเลย! 🕯️)</p>
+        <div style="font-size: 70px; position: relative;">
+          <span class="flame" id="flame1" onclick="extinguish(1)">🔥</span>
+          <span class="flame" id="flame2" onclick="extinguish(2)">🔥</span>
+          <span class="flame" id="flame3" onclick="extinguish(3)">🔥</span>
+          <br>
+          🎂
+        </div>
+      </div>
+      
+      <button class="btn" id="start-wish-btn" onclick="startCountdown()">เริ่มอธิษฐาน 🙏</button>
+      <p id="candle-msg" style="margin-top: 15px; font-weight: bold; color: #ff6b81;"></p>
+    </div>
+
+  </div>
+
+  <!-- FINAL STAGE OVERLAY -->
+  <div id="dark-overlay" class="dark-overlay">
+    <div id="typewriter-box" class="typewriter-text"></div>
+
+    <div id="final-letter" class="final-card" style="display: none;">
+      <h2 style="text-align: center; color: #ff4757;">🎉 สุขสันต์วันเกิดนะอ้วน ❤️</h2>
+      <p>วันนี้วันที่ 30 กันยา ป่ะ เอ๊ะ ใช่สิ วันเกิดแฟนเค้าเองงง~</p>
+      <p>สุขสันต์วันเกิดนะอ้วน ปีนี้ก็ 22 แล้วป่ะ เอ๊ะ เค้ารับเลขไม่ถูก แต่น่าจะถูกแหละ แก่ขึ้นอีกปีแล้วนิ สุขภาพแรงๆนะ อย่าหักโหมมาก เจอเรื่องอะไรก็อย่าท้อนะ เค้าเป็นกำลังใจให้ สู้ๆนะคนเก่ง เธอเก่งมากสำหรับเค้า ร่าเริงแบบนี้ตลอดไปนะ ยิ้มเยอะๆนะ เค้าอวยพรไม่เก่ง ปีนี้เป็นปีแรกที่เค้าได้อยู่ในวันเกิดเธอเลย~ อยากอยู่ในวันเกิดเธอทุกๆปีเลย~ ถึงเค้าจะดื้อไปหน่อย แต่ไม่เป็นไรเค้าไม่ปรับคิคิ ขอบคุณที่เกิดมานะที่รัก เค้ารักเธอนะ💗
+      
+      
+    ⬇️เลื่อนลงได้อีกนะ⬇️</p>
+      
+      <div style="text-align: center; margin-top: 20px;">
+        <button class="btn" onclick="triggerHugEffect()">🤗 ปุ่มกอดกัน</button>
+        <button class="btn btn-secondary" onclick="restartAll()">🔄 ดูอีกรอบ</button>
+        <button class="btn" onclick="alert('รักเพิ่มขึ้น 1000000% เรียบร้อยแล้วนะจ๊ะ! 🥰')">💕 รักเราเพิ่ม 100%</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Autoplay & Music System ---
+    const music = document.getElementById('bg-music');
+    const musicBtn = document.getElementById('music-toggle-btn');
+    let isMusicPlaying = false;
+
+    music.volume = 1.0;
+
+    // ฟังก์ชันกดปุ่มแรกเพื่อเล่นเพลงและเปลี่ยนหน้าพร้อมกัน
+    function playMusicAndNext(stageNum) {
+      music.play().then(() => {
+        isMusicPlaying = true;
+        musicBtn.innerText = "🎵 เพลงกำลังเล่น";
+      }).catch(err => {
+        console.log("Music play error:", err);
+      });
+      
+      nextStage(stageNum);
+    }
+
+    function toggleMusic() {
+      if (isMusicPlaying) {
+        music.pause();
+        isMusicPlaying = false;
+        musicBtn.innerText = "🔇 ปิดเสียงอยู่";
+      } else {
+        music.play().then(() => {
+          isMusicPlaying = true;
+          musicBtn.innerText = "🎵 เพลงกำลังเล่น";
+        }).catch(err => {
+          alert("กรุณาตรวจสอบว่ามีไฟล์ 'ทุกปี.mp3' อยู่ในโฟลเดอร์เดียวกันครับ");
+        });
+      }
+    }
+
+    // หรี่เพลงเมื่อเล่นวิดีโอ
+    const video = document.getElementById('memory-video');
+    if (video) {
+      video.addEventListener('play', () => { music.volume = 0.2; });
+      video.addEventListener('pause', () => { music.volume = 1.0; });
+      video.addEventListener('ended', () => { music.volume = 1.0; });
+    }
+
+    // --- Background Particles & Star Effect ---
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 3 + 1;
+        this.speedY = Math.random() * 1 - 0.5;
+        this.speedX = Math.random() * 1 - 0.5;
+        this.opacity = Math.random();
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+      }
+      draw() {
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 50; i++) particles.push(new Particle());
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // --- Hearts Follow Cursor / Touch ---
+    window.addEventListener('pointermove', function(e) {
+      if (Math.random() < 0.2) {
+        createHeart(e.clientX, e.clientY);
+      }
+    });
+
+    function createHeart(x, y) {
+      const heart = document.createElement('div');
+      heart.className = 'heart-particle';
+      heart.innerHTML = ['❤️', '✨', '💖', '🌸'][Math.floor(Math.random() * 4)];
+      heart.style.left = x + 'px';
+      heart.style.top = y + 'px';
+      const dx = (Math.random() - 0.5) * 100 + 'px';
+      const dy = (Math.random() - 1) * 100 + 'px';
+      heart.style.setProperty('--dx', dx);
+      heart.style.setProperty('--dy', dy);
+      document.body.appendChild(heart);
+
+      setTimeout(() => heart.remove(), 1500);
+    }
+
+    // --- Stage Navigation ---
+    function nextStage(stageNum) {
+      document.querySelectorAll('.stage').forEach(s => s.classList.remove('active'));
+      document.getElementById(`stage-${stageNum}`).classList.add('active');
+    }
+
+    // --- Runaway Button ---
+    function moveButton() {
+      const btn = document.getElementById('runaway-btn');
+      const x = Math.random() * (window.innerWidth - 150);
+      const y = Math.random() * (window.innerHeight - 80);
+      btn.style.position = 'fixed';
+      btn.style.left = x + 'px';
+      btn.style.top = y + 'px';
+    }
+
+    // --- Stage 1 ---
+    function wrongAnswerStage1() {
+      document.getElementById('stage1-msg').innerText = "อ้าว แล้วใครเกิดอะ 😂 ลองใหม่!";
+    }
+
+    // --- Stage 2: Photo Memories ---
+    const photos = [
+      { src: "photo07.jpg", caption: "อุ้ยวันแรกที่เราเจอกันนี่~🫢" },
+      { src: "photo06.jpg", caption: "เท่จัดเลยคนนี้~🫣" },
+      { src: "photo04.jpg", caption: "ตู้สติ๊กเกอร์น่ารักๆ น่ารักแพ็คคู่เลย 😍" },
+      { src: "photo001.jpg", caption: "วันนั้นอ้วนเลี้ยงหนังง 🎥🎬" },
+      { src: "photo05.jpg", caption: "มุมเสยก็ยังน่ารักน้าาา 🤪💖" },
+      { src: "photo08.jpg", caption: "วิวมองทะเลพัทยาสวยๆ 🌙✨" },
+      { src: "photo02.jpg", caption: "อ้อนๆ ซบไหล่กันแน่นๆ 💕" },
+      { src: "photo03.jpg", caption: "หมั่นไส้จังเลยนะ แฟนเค้า 🙄" },
+      { src: "photo09.jpg", caption: "หล่ออีกละ หว่าแฟนใครหว่าา 😚" }
+    ];
+
+    let currentPhotoIdx = 0;
+
+    function updatePhoto() {
+      document.getElementById('current-img').src = photos[currentPhotoIdx].src;
+      document.getElementById('current-caption').innerText = photos[currentPhotoIdx].caption;
+    }
+
+    function nextPhoto() {
+      if (currentPhotoIdx < photos.length - 1) {
+        currentPhotoIdx++;
+        updatePhoto();
+      } else {
+        nextStage(3);
+      }
+    }
+
+    function prevPhoto() {
+      if (currentPhotoIdx > 0) {
+        currentPhotoIdx--;
+        updatePhoto();
+      }
+    }
+
+    updatePhoto();
+
+    // --- Stage 4: Countdown & Candle blowing ---
+    function startCountdown() {
+      document.getElementById('start-wish-btn').style.display = 'none';
+      const countdownBox = document.getElementById('countdown-text');
+      let count = 5;
+
+      const timer = setInterval(() => {
+        if (count > 0) {
+          countdownBox.innerText = count;
+          count--;
+        } else {
+          clearInterval(timer);
+          countdownBox.innerText = "เป่าเทียนได้เล้ย! 🎂✨";
+          document.getElementById('cake-area').style.display = 'block';
+        }
+      }, 1000);
+    }
+
+    let candlesLeft = 3;
+    function extinguish(id) {
+      const flame = document.getElementById(`flame${id}`);
+      if (flame.style.visibility !== 'hidden') {
+        flame.style.visibility = 'hidden';
+        candlesLeft--;
+        confetti({ particleCount: 30, spread: 60, origin: { y: 0.6 } });
+      }
+      if (candlesLeft === 0) {
+        document.getElementById('candle-msg').innerText = "เป่าดับหมดแล้ว! เก่งมากเย้ 🎉";
+        setTimeout(() => startFinalCutscene(), 1200);
+      }
+    }
+
+    // --- Final Stage Trigger ---
+    function startFinalCutscene() {
+      const overlay = document.getElementById('dark-overlay');
+      const box = document.getElementById('typewriter-box');
+      const finalLetter = document.getElementById('final-letter');
+
+      overlay.style.display = 'flex';
+      box.style.display = 'block';
+      finalLetter.style.display = 'none';
+
+      const textSequence = [
+        "รู้ไหม…",
+        "ของขวัญที่เราอยากให้ที่สุด…",
+        "คือเค้าอยากให้เธออยู่ให้เค้ารักเธออย่างงี้ตลอดไปเลยนะ",
+        "แล้วเค้าก็อยากอยู่กับเธออยู่ในทุกๆวันเกิดเธอต่อจากนี้ ❤️️",
+        "💗เซนรักบอลนะคิคิ💗"
+      ];
+
+      let seqIdx = 0;
+
+      function showNextText() {
+        if (seqIdx < textSequence.length) {
+          box.innerText = textSequence[seqIdx];
+          seqIdx++;
+          setTimeout(showNextText, 2200);
+        } else {
+          box.style.display = 'none';
+          finalLetter.style.display = 'block';
+          launchFireworks();
+        }
+      }
+
+      showNextText();
+    }
+
+    function launchFireworks() {
+      var count = 200;
+      var defaults = { origin: { y: 0.7 } };
+
+      function fire(particleRatio, opts) {
+        confetti(Object.assign({}, defaults, opts, {
+          particleCount: Math.floor(count * particleRatio)
+        }));
+      }
+
+      fire(0.25, { spread: 26, startVelocity: 55 });
+      fire(0.2, { spread: 60 });
+      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+      fire(0.1, { spread: 120, startVelocity: 45 });
+    }
+
+    function triggerHugEffect() {
+      for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+          createHeart(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+        }, i * 30);
+      }
+      launchFireworks();
+    }
+
+    function restartAll() {
+      document.getElementById('dark-overlay').style.display = 'none';
+      candlesLeft = 3;
+      document.querySelectorAll('.flame').forEach(f => f.style.visibility = 'visible');
+      document.getElementById('candle-msg').innerText = '';
+      document.getElementById('cake-area').style.display = 'none';
+      document.getElementById('start-wish-btn').style.display = 'inline-block';
+      document.getElementById('countdown-text').innerText = '';
+      currentPhotoIdx = 0;
+      updatePhoto();
+      nextStage(0);
+    }
+  </script>
+</body>
+    </html>
+  
